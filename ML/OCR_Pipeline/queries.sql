@@ -1,0 +1,2 @@
+SELECT engine, COUNT(*) AS pages, AVG(score) AS avg_score FROM pages GROUP BY engine;
+SELECT folder_id, COUNT(*) AS total_count, SUM(status = 'succeed') AS success_count, ROUND(1.0 * SUM(status = 'succeed') / COUNT(*), 4) AS success_rate FROM pages GROUP BY folder_id ORDER BY success_rate;

@@ -1,0 +1,11 @@
+[
+    {
+        "op": "convert_color",
+        "params": {
+            "color_space": "GRAY"
+        }
+    },
+    {
+        "op": "fix_tilt"
+    }
+]

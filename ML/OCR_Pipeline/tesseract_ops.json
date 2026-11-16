@@ -1,0 +1,22 @@
+[
+    {
+        "op": "convert_color",
+        "params": {
+            "color_space": "GRAY"
+        }
+    },
+    {
+        "op": "threshold",
+        "params": {
+            "value": 180,
+            "maxval": 255,
+            "threshold_type": "BINARY",
+            "threshold_method": "GLOBAL",
+            "block_size": 11,
+            "C": 10
+        }
+    },
+    {
+        "op": "fix_tilt"
+    }
+]
