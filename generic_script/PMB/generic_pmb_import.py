@@ -208,13 +208,13 @@ def insert_custom_values(notices_df, custom_cols):
     for col in custom_cols:
         print(col)
         custom_values_df = notices_df[["notice_id"] + [col]]
-        if col in ["square_degree", "company", "country", "old_province", "localities", "resource", "commodities"]:
+        if col in ["square_degree", "company", "country", "old_province", "localities", "resource", "commodities", "old_id"]:
             custom_values_df[col] = custom_values_df[col].str.split(";")
             custom_values_df = custom_values_df.explode(col)
         cur.execute(select_sql, (col,))
         result = cur.fetchone()
         for row in custom_values_df.itertuples(index=False):
-            if col in ["commodities", "square_degree", "old_province", "localities", "resource", "country", "company"]:
+            if col in ["square_degree", "company", "country", "old_province", "localities", "resource", "commodities", "old_id"]:
                 custom_field = "notices_custom_small_text"
             elif col in ["year_low", "year_high"]:
                 custom_field = "notices_custom_integer"
@@ -270,6 +270,7 @@ def import_pdf_documents(notices_df, repertoire_id):
 repertoire_ids = [2]
 ids_cols = ["folder_id", "subfolder_id", "subsubfolder_id"]
 std_cols = ["subfolder_title", "sub_subfolder_title", "content", "remarks"]
+authors_col = ["author_name"]
 categories_cols = ["document_type", "theme", "new_province"]
 custom_cols = ["old_id", "square_degree", "company", "year_low", "year_high", "country", "old_province", "localities", "resource", "commodities"]
 folder_ids = [5, 6, 7, 8, 11, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 254, 258, 259, 260, 262, 263, 268, 270, 272, 280]
@@ -290,12 +291,16 @@ with pymysql.connect(**db) as con:
             # excel_df = excel_df[:10]
             
             excel_df = excel_df.rename(columns=dict_cols)
-            excel_df = excel_df[ids_cols + std_cols + categories_cols + custom_cols]
+            excel_df["years"] = excel_df["years"].astype(str)
+            excel_df["year_low"] = excel_df["years"].str.split('-').str[0]
+            excel_df["year_high"] = excel_df["years"].str.split('-').str[1]
+            excel_df = excel_df.drop("years", axis=1)
+            excel_df = excel_df[ids_cols + std_cols + authors_col + categories_cols + custom_cols]
             
             print(excel_df.columns)
 
             if folder_ids:
-                excel_df = excel_df[excel_df["numero_dossier"].isin(folder_ids)]
+                excel_df = excel_df[excel_df["folder_id"].isin(folder_ids)]
 
             excel_df = fill_id_cols(excel_df)
 
@@ -309,10 +314,6 @@ with pymysql.connect(**db) as con:
             
             for col in ["document_type", "theme", "new_province"]:
                 excel_df[col] = excel_df[col].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
-            excel_df["years"] = excel_df["years"].astype(str)
-            excel_df["year_low"] = excel_df["years"].str.split('-').str[0]
-            excel_df["year_high"] = excel_df["years"].str.split('-').str[1]
-            excel_df = excel_df.drop("years", axis=1)
             for col in ["folder_id", "subfolder_id", "subsubfolder_id", "year_low", "year_high"]:
                 excel_df[col] = excel_df[col].astype(str).str.replace('\xa0', '').str.replace('\u00a0', '').str.strip()
                 excel_df[col] = pd.to_numeric(excel_df[col], errors='coerce')

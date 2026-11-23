@@ -1,9 +1,9 @@
 import numpy as np
 
 def fill_id_cols(df):
-    df["N° dossier"] = df["N° dossier"].ffill()
-    df["N° sous-dossier"] = df.groupby(["N° dossier"])[["N° sous-dossier"]].ffill()
-    for col in ["N° sous-dossier"]:
+    df["folder_id"] = df["folder_id"].ffill()
+    df["subfolder_id"] = df.groupby(["folder_id"])[["subfolder_id"]].ffill()
+    for col in ["subfolder_id"]:
         df[col] = df[col].fillna(1)
     return df
 
