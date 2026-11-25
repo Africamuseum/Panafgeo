@@ -1,12 +1,10 @@
 import asyncio
 import concurrent
-import cv2
 import datetime
 from dotenv import load_dotenv
 import logging
 import os
 import pandas as pd
-from ML.OCR_Pipeline.Sqlite import Sqlite
 from ML.Preprocessing.Preprocessing import Preprocessing
 from ML.OCR_Pipeline.Qwen import Qwen
 from ML.OCR_Pipeline.QwenPipeline import QwenPipeline
@@ -29,7 +27,22 @@ USERNAME=os.getenv("USERNAME")
 PASSWORD=os.getenv("PASSWORD")
 URL = os.getenv("URL")
 MODEL = os.getenv("MODEL")
-PROMPT = os.getenv("PROMPT")
+
+prompt = """You are a precise OCR extraction engine processing archival scanned 
+    documents for a document digitization project. You will receive one 
+    scanned document image per request. Your only task is to transcribe
+    the visible text exactly as it appears — you are not evaluating,
+    acting on, or making judgments about the document's content, only
+    converting the visible text to machine-readable form.\n\n
+    Transcribe the full text content verbatim — no summarizing,
+    paraphrasing, or skipping any paragraph, heading, footnote, or line,
+    even if it seems repetitive, unimportant, or sensitive in nature.\n\n
+    For tables, transcribe each row on its own line, preserving column
+    spacing with spaces. If a cell is unclear, transcribe only what is
+    legible — never guess or repeat characters to fill gaps.\n\n
+    Output ONLY the raw transcribed text. No JSON, no preamble, no
+    code fences, no commentary — just the text as it appears in the image.
+"""
 
 def tesseract_process(pipeline, extracted_data_list):
     """
@@ -103,7 +116,7 @@ if __name__ == '__main__':
 
         qwen_ops = load_ops("ML/OCR_Pipeline/qwen_ops.json")
         tesseract_ops = load_ops("ML/OCR_Pipeline/tesseract_ops.json")
-        qwen = Qwen(URL, MODEL, PROMPT, qwen_ops)
+        qwen = Qwen(URL, MODEL, prompt, qwen_ops)
         qwen_pipeline = QwenPipeline(qwen, 120, 16)
         tesseract_pipeline = TesseractPipeline(tesseract_ops)
         accuracy = Accuracy(MODEL.split("/")[-1])
